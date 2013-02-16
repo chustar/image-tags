@@ -7,11 +7,15 @@ $.fn.image_tag = (options) ->
 	this.on('mousedown', 'img', placeMarker)
 
 placeMarker = (e) ->
-	parent = $(this).parent()
-	marker = new Marker(parent, e.pageX, e.pageY)
-	line = new Line(parent, e.pageX + 8, e.pageY + 3)
+	console.log(e)
+	body = $('body')
+	globalDiv = $('<div></div>')
+	console.log(globalDiv)
+	marker = new Marker(globalDiv, e.pageX, e.pageY)
+	line = new Line(globalDiv, e.pageX + 8, e.pageY + 3)
+	body.append(globalDiv)
 	
-	parent.on('mousemove', (e) ->
+	body.on('mousemove', (e) ->
 		css = {}
 		css.width = Math.abs(e.pageX - line.x + 1)
 		if(e.pageX + 8 < line.x)
@@ -21,15 +25,15 @@ placeMarker = (e) ->
 		line.line.css(css)
 	)
 
-	parent.on('mouseup', (e) ->
+	body.on('mouseup', (e) ->
 		text = {}
 		if(e.pageX < marker.x)
-			text = new Text(this, e.pageX - 100 - 9, marker.y, marker, line)
+			text = new Text(globalDiv, e.pageX - 100 - 9, marker.y, marker, line)
 		else
-			text = new Text(this, e.pageX, marker.y, marker, line)
+			text = new Text(globalDiv, e.pageX, marker.y, marker, line)
 
-		$(this).off('mouseup')
-		$(this).off('mousemove')
+		body.off('mouseup')
+		body.off('mousemove')
 	)
 
 class Line

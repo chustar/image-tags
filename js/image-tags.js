@@ -11,11 +11,15 @@
   };
 
   placeMarker = function(e) {
-    var line, marker, parent;
-    parent = $(this).parent();
-    marker = new Marker(parent, e.pageX, e.pageY);
-    line = new Line(parent, e.pageX + 8, e.pageY + 3);
-    parent.on('mousemove', function(e) {
+    var body, globalDiv, line, marker;
+    console.log(e);
+    body = $('body');
+    globalDiv = $('<div></div>');
+    console.log(globalDiv);
+    marker = new Marker(globalDiv, e.pageX, e.pageY);
+    line = new Line(globalDiv, e.pageX + 8, e.pageY + 3);
+    body.append(globalDiv);
+    body.on('mousemove', function(e) {
       var css;
       css = {};
       css.width = Math.abs(e.pageX - line.x + 1);
@@ -25,16 +29,16 @@
       }
       return line.line.css(css);
     });
-    return parent.on('mouseup', function(e) {
+    return body.on('mouseup', function(e) {
       var text;
       text = {};
       if (e.pageX < marker.x) {
-        text = new Text(this, e.pageX - 100 - 9, marker.y, marker, line);
+        text = new Text(globalDiv, e.pageX - 100 - 9, marker.y, marker, line);
       } else {
-        text = new Text(this, e.pageX, marker.y, marker, line);
+        text = new Text(globalDiv, e.pageX, marker.y, marker, line);
       }
-      $(this).off('mouseup');
-      return $(this).off('mousemove');
+      body.off('mouseup');
+      return body.off('mousemove');
     });
   };
 
