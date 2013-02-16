@@ -1,16 +1,17 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<title>Image Tag</title>
 		<script src="js/jquery.js" type="text/javascript"></script>
-		<script src="js/image-tag.js" type="text/javascript"></script>
+		<script src="js/image-tags.js" type="text/javascript"></script>
 		<link href="css/style.css" rel="stylesheet" title="CSS" type="text/css" />
 	</head>
 	<body>
 		<div id="target">
-			<img id="image" src="image.jpg" />
+			<img id="image" src="image.jpg" alt="hipsters in the city." />
 		</div>
+		<script type="text/javascript">
+			$("#target").image_tag();
+		</script>
 	</body>
-	<script type="text/javascript">
-		$("#target").image_tag();
-	</script>
 </html>
