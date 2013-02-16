@@ -1,17 +1,3 @@
-@import url("reset.css");
-body {
-	background-color: white;
-}
-.target {
-	position: relative;
-}
-#image {
-	max-width: 960px;
-	max-height: 500px;
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-}
 .image-tag-marker {
 	position: absolute;
 	width: 7px;
