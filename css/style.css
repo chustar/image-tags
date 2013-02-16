@@ -12,7 +12,7 @@ body {
 	margin-left: auto;
 	margin-right: auto;
 }
-.marker {
+.image-tag-marker {
 	position: absolute;
 	width: 7px;
 	height: 7px;
@@ -21,7 +21,7 @@ body {
 	border-width: 1px;
 	border-color: white;
 }
-.text {
+.image-tag-text {
 	position: absolute;
 	width: 100px;
 	height: 30px;
@@ -34,7 +34,7 @@ body {
 	border-width: 1px;
 	border-color: white;
 }
-.line {
+.image-tag-line {
 	position: absolute;
 	height: 1px;
 	background-color: black;

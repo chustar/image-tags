@@ -34,7 +34,7 @@ placeMarker = (e) ->
 
 class Line
 	constructor: (div, x, y) ->
-		this.line = $('<div class="line" id="line-' + x + '+' + y + '"></div>')
+		this.line = $('<div class="image-tag-line" id="image-tag-line-' + x + '+' + y + '"></div>')
 		this.x = x
 		this.y = y
 		this.line.css({
@@ -46,7 +46,7 @@ class Line
 
 class Marker
 	constructor: (div, x, y) ->
-		this.marker = $('<div class="marker" id="marker-' + x + '+' + y + '"></div>')
+		this.marker = $('<div class="image-tag-marker" id="image-tag-marker-' + x + '+' + y + '"></div>')
 		this.x = x
 		this.y = y
 		this.marker.css({
@@ -60,7 +60,7 @@ class Text
 	constructor: (div, x, y, marker, line) ->
 		this.line = line
 		this.marker = marker
-		this.text = $('<p class="text" id="text-' + x + '+' + y + '"></p>')
+		this.text = $('<p class="image-tag-text" id="image-tag-text-' + x + '+' + y + '"></p>')
 		this.text.css({
 			left: x + 'px',
 			top: y + 'px'
