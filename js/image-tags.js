@@ -35,10 +35,14 @@
     body.on('mousemove', function(e) {
       var css;
       css = {};
-      css.width = Math.abs(e.pageX - line.x + 1);
-      if (e.pageX + 8 < line.x) {
-        css.left = e.pageX;
-        css.width = Math.abs(e.pageX - line.x) - 7;
+      if (e.pageX < marker.x) {
+        css.left = '';
+        css.right = $(document).width() - marker.x - 1;
+        css.width = Math.abs(e.pageX - marker.x - 2);
+      } else {
+        css.right = '';
+        css.left = line.x;
+        css.width = Math.abs(e.pageX - line.x + 1);
       }
       return line.line.css(css);
     });
@@ -47,6 +51,9 @@
       text = {};
       if (e.pageX < marker.x) {
         text = new Tag(globalDiv, $(document).width() - e.pageX, marker.y, marker, line, guid, 'right');
+        marker.x = $(document).width() - marker.x - 9;
+        marker.marker.css('left', '');
+        marker.marker.css('right', marker.x);
       } else {
         text = new Tag(globalDiv, e.pageX, marker.y, marker, line, guid, 'left');
       }
@@ -112,6 +119,10 @@
       that.text.css(textAlign, x + 'px');
       that.text.css('text-align', textAlign);
       that.text.css('top', y + 'px');
+      if (textAlign === 'right') {
+        marker;
+
+      }
       $(div).append(that.text);
       if (text === '') {
         that.text.prop('contentEditable', true);
