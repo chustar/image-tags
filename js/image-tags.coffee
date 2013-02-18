@@ -1,16 +1,28 @@
 $ = jQuery
 
+focusedElement = null
+
+tags = {}
+
 $.fn.image_tag = (options) ->
 	settings = $.extend({
 	}, options)
 
-	this.on('mousedown', 'img', placeMarker)
+	this.on('mousedown', 'img', placeTag)
 
-placeMarker = (e) ->
-	console.log(e)
+addTag = (markerX, markerY, lineWidth, textX, textY, textAlign, text) ->
 	body = $('body')
-	globalDiv = $('<div></div>')
-	console.log(globalDiv)
+	guid = new GUID().guid()
+	globalDiv = $('<div id="image-tag-' + guid + '"></div>')
+
+	marker = new Marker(globalDiv, markerX, markerY)
+	line = new Line(globalDiv, markerX + 8, markerY + 3, lineWidth)
+	tag = new Tag(globalDiv, textX, textY, guid, text)
+
+placeTag = (e) ->
+	body = $('body')
+	guid = new GUID().guid()
+	globalDiv = $('<div id="image-tag-' + guid + '"></div>')
 	marker = new Marker(globalDiv, e.pageX, e.pageY)
 	line = new Line(globalDiv, e.pageX + 8, e.pageY + 3)
 	body.append(globalDiv)
@@ -28,25 +40,13 @@ placeMarker = (e) ->
 	body.on('mouseup', (e) ->
 		text = {}
 		if(e.pageX < marker.x)
-			text = new Text(globalDiv, e.pageX - 100 - 9, marker.y, marker, line)
+			text = new Tag(globalDiv, $(document).width() - e.pageX, marker.y, marker, line, guid, 'right')
 		else
-			text = new Text(globalDiv, e.pageX, marker.y, marker, line)
+			text = new Tag(globalDiv, e.pageX, marker.y, marker, line, guid, 'left')
 
 		body.off('mouseup')
 		body.off('mousemove')
 	)
-
-class Line
-	constructor: (div, x, y) ->
-		this.line = $('<div class="image-tag-line" id="image-tag-line-' + x + '+' + y + '"></div>')
-		this.x = x
-		this.y = y
-		this.line.css({
-			left: x + 'px',
-			top: y + 'px'
-		})
-		
-		div.append(this.line)
 
 class Marker
 	constructor: (div, x, y) ->
@@ -60,29 +60,77 @@ class Marker
 
 		div.append(this.marker)
 
-class Text
-	constructor: (div, x, y, marker, line) ->
-		this.line = line
-		this.marker = marker
-		this.text = $('<p class="image-tag-text" id="image-tag-text-' + x + '+' + y + '"></p>')
-		this.text.css({
+class Line
+	constructor: (div, x, y) ->
+		this.line = $('<div class="image-tag-line" id="image-tag-line-' + x + '+' + y + '"></div>')
+		this.x = x
+		this.y = y
+		this.line.css({
 			left: x + 'px',
 			top: y + 'px'
 		})
+		
+		div.append(this.line)
 
-		$(div).append(this.text)
-		this.text.prop('contentEditable', true)
-		this.text.on('keypress', (e) ->
-			
-			if(e.keyCode == 13)
-				$(this).prop('contentEditable', false)
-				$(this).blur()
+class Tag
+	constructor: (div, x, y, marker, line, guid, textAlign = 'left', text = '') ->
+		that = this
+		if (focusedElement != null)
+			$(focusedElement).removeClass('image-tag-focused')
+
+		that.guid = guid
+		console.log(guid)
+		that.tagId = 'image-tag-text-' + that.guid
+		that.marker = marker
+		that.line = line
+		that.text = $('<p class="image-tag-text" id="image-tag-text-' + that.guid + '">' + text + '</p>')
+		that.text.css(textAlign, x + 'px')
+		that.text.css('text-align', textAlign)
+		that.text.css('top', y + 'px')
+
+		$(div).append(that.text)
+		
+		if (text == '')
+			that.text.prop('contentEditable', true)
+			that.text.on('keypress', (e) ->
+				if(e.keyCode == 13)
+					$(this).blur()
+			)
+
+			that.text.on('blur', (e) ->
+				if($.trim($(this).text()) == '')
+					that.remove()
+				else
+					$(this).prop('contentEditable', false)
+					that.select()
+			)
+		
+		that.text.on('click', (e) ->
+			that.select()
 		)
 
-		this.text.on('blur', (e) ->
-			if($.trim($(this).text()) == '')
-				$(this).remove()
-				line.line.remove()
-				marker.marker.remove()
-		)
-		this.text.focus()
+		tags[that.guid] = that
+		that.text.focus()
+
+	select: ->
+		if (focusedElement != null && focusedElement != this)
+			$('#image-tag-' + focusedElement.guid + '> *').removeClass('image-tag-focused')
+
+		$('#image-tag-' + this.guid + '> *').addClass('image-tag-focused')
+		focusedElement = this
+
+	remove: ->
+		this.text.remove()
+		this.line.line.remove()
+		this.marker.marker.remove()
+
+		tags.splice(this.guid, 1)
+		console.log(tags)
+
+class GUID
+	s4: ->
+		Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
+			 
+	guid: ->
+		this.s4() + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + this.s4() + this.s4()
+
