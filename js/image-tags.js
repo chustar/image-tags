@@ -20,7 +20,7 @@
     guid = new GUID().guid();
     globalDiv = $('<div id="image-tag-' + guid + '"></div>');
     marker = new Marker(globalDiv, markerX, markerY);
-    line = new Line(globalDiv, markerX + 8, markerY + 3, lineWidth);
+    line = new Line(globalDiv, markerX + 8, markerY + 2, lineWidth);
     return tag = new Tag(globalDiv, textX, textY, guid, text);
   };
 
@@ -30,7 +30,7 @@
     guid = new GUID().guid();
     globalDiv = $('<div id="image-tag-' + guid + '"></div>');
     marker = new Marker(globalDiv, e.pageX, e.pageY);
-    line = new Line(globalDiv, e.pageX + 8, e.pageY + 3);
+    line = new Line(globalDiv, e.pageX + 8, e.pageY + 2);
     body.append(globalDiv);
     body.on('mousemove', function(e) {
       var css;
@@ -81,14 +81,15 @@
 
   Line = (function() {
 
-    function Line(div, x, y) {
+    function Line(div, x, y, width) {
       this.line = $('<div class="image-tag-line" id="image-tag-line-' + x + '+' + y + '"></div>');
       this.x = x;
       this.y = y;
-      this.line.css({
-        left: x + 'px',
-        top: y + 'px'
-      });
+      this.line.css('left', x + 'px');
+      this.line.css('top', y + 'px');
+      if (width != null) {
+        this.line.css('width', width);
+      }
       div.append(this.line);
     }
 
@@ -98,13 +99,16 @@
 
   Tag = (function() {
 
-    function Tag(div, x, y, marker, line, guid, textAlign, text) {
+    function Tag(div, x, y, marker, line, guid, textAlign, text, rider) {
       var that;
       if (textAlign == null) {
         textAlign = 'left';
       }
       if (text == null) {
         text = '';
+      }
+      if (rider == null) {
+        rider = '';
       }
       that = this;
       if (focusedElement !== null) {
@@ -115,15 +119,15 @@
       that.tagId = 'image-tag-text-' + that.guid;
       that.marker = marker;
       that.line = line;
-      that.text = $('<p class="image-tag-text" id="image-tag-text-' + that.guid + '">' + text + '</p>');
-      that.text.css(textAlign, x + 'px');
+      that.textblock = $('<p class="image-tag-text-wrapper" id="image-tag-text-' + that.guid + '"></p>');
+      that.text = $('<p class="image-tag-text">' + text + '</p>');
+      that.rider = $('<p class="image-tag-rider">' + rider + '</p>');
+      that.textblock.css(textAlign, x + 'px');
+      that.textblock.css('top', y + 'px');
       that.text.css('text-align', textAlign);
-      that.text.css('top', y + 'px');
-      if (textAlign === 'right') {
-        marker;
-
-      }
-      $(div).append(that.text);
+      that.textblock.append(that.text);
+      that.textblock.append(that.rider);
+      $(div).append(that.textblock);
       if (text === '') {
         that.text.prop('contentEditable', true);
         that.text.on('keypress', function(e) {
@@ -139,19 +143,21 @@
             return that.select();
           }
         });
+        that.text.focus();
       }
       that.text.on('click', function(e) {
         return that.select();
       });
       tags[that.guid] = that;
-      that.text.focus();
     }
 
     Tag.prototype.select = function() {
       if (focusedElement !== null && focusedElement !== this) {
-        $('#image-tag-' + focusedElement.guid + '> *').removeClass('image-tag-focused');
+        $('#image-tag-' + focusedElement.guid + '> div').removeClass('image-tag-focused');
+        $('#image-tag-text-' + focusedElement.guid + '> p').removeClass('image-tag-focused');
       }
-      $('#image-tag-' + this.guid + '> *').addClass('image-tag-focused');
+      $('#image-tag-' + this.guid + '> div').addClass('image-tag-focused');
+      $('#image-tag-text-' + this.guid + '> p').addClass('image-tag-focused');
       return focusedElement = this;
     };
 
