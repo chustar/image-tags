@@ -12,7 +12,17 @@
 			<img id="image" src="image.jpg" alt="hipsters in the city." />
 		</div>
 		<script type="text/javascript">
-			$("#target").image_tag();
+			$("#target").image_tag({
+				'tags': [
+					{"startX":499,"startY":313,"endX":326,"endY":313,"text":"one the right?","rider":""},
+					{"startX":547,"startY":282,"endX":692,"endY":282,"text":"one the left?","rider":""},
+					{"startX":498,"startY":404,"endX":376,"endY":404,"text":"super long one to thest the length of the stuff!","rider":""},
+					{"startX":664,"startY":109,"endX":847,"endY":109,"text":"from the eyes!","rider":""} 
+				],
+				callback: function(obj) {
+					obj.riderbox.text('riders')
+				}
+			});
 		</script>
 	</body>
 </html>

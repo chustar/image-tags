@@ -3,70 +3,55 @@ $ = jQuery
 focusedElement = null
 
 tags = {}
+settings = {}
 
 $.fn.image_tag = (options) ->
 	settings = $.extend({
-		
+		'tags': {},
+		'callback': ->
 	}, options)
+	
+	addTag(tag.startX, tag.startY, tag.endX, tag.endY, tag.text, tag.rider) for tag in settings.tags
 
 	this.on('mousedown', 'img', placeTag)
 
-# 8 and 2 are the offsets for the marker. Allows the line to be 
-# in the middle of the marker
-addTag = (markerX, markerY, lineWidth, textX, textY, textAlign, text) ->
+addTag = (startX, startY, endX, endY, text, rider) ->
 	body = $('body')
 	guid = new GUID().guid()
 	globalDiv = $('<div id="image-tag-' + guid + '"></div>')
+	body.append(globalDiv)
 
-	marker = new Marker(globalDiv, markerX, markerY)
-	line = new Line(globalDiv, markerX + 8, markerY + 2, lineWidth)
-	tag = new Tag(globalDiv, textX, textY, guid, text)
+	marker = new Marker(startX, startY)
+	line = new Line(startX, startY, endX)
+	globalDiv.append(line.line).append(marker.marker)
+
+	tag = new Tag(globalDiv, endX, endY, marker, line, guid, text, rider)
 
 placeTag = (e) ->
 	body = $('body')
 	guid = new GUID().guid()
 	globalDiv = $('<div id="image-tag-' + guid + '"></div>')
-	marker = new Marker(globalDiv, e.pageX, e.pageY)
-	line = new Line(globalDiv, e.pageX + 8, e.pageY + 2)
 	body.append(globalDiv)
+
+	marker = new Marker(e.pageX, e.pageY)
+	line = new Line(e.pageX, e.pageY)
+	globalDiv.append(line.line).append(marker.marker)
 	
 	body.on('mousemove', (e) ->
 		css = {}
-		# I set css.left|right = '' to clear its setting.
-		if(e.pageX < marker.x)
-			css.left = ''
-			# -1 allows the line to overlap the marker
-			# -2 allows it to overlap the text
-			css.right = $(document).width() - marker.x - 1
-			css.width = Math.abs(e.pageX - marker.x - 2)
-		else
-			css.right = ''
-			css.left = line.x
-			# +1 allows it to overlap the marker. 
-			css.width = Math.abs(e.pageX - line.x + 1)
-
-		line.line.css(css)
+		line.update(e.pageX, e.pageY)
 	)
+
 	body.on('mouseup', (e) ->
-		text = {}
-		if(e.pageX < marker.x)
-			text = new Tag(globalDiv, $(document).width() - e.pageX, marker.y, marker, line, guid, 'right')
-			# -9 is the width of the marker + 1
-			# this allows the line to go across the marker and then overlap it.
-			# flipping the markers positioning so it stays with its
-			#   line and tag when page is zoomed or resized.
-			marker.x = $(document).width() - marker.x - 9
-			marker.marker.css('left', '')
-			marker.marker.css('right', marker.x)
-		else
-			text = new Tag(globalDiv, e.pageX, marker.y, marker, line, guid, 'left')
+		marker.update(e.pageX)
+		text = new Tag(globalDiv, e.pageX, marker.y, marker, line, guid)
 
 		body.off('mouseup')
 		body.off('mousemove')
 	)
 
 class Marker
-	constructor: (div, x, y) ->
+	constructor: (x, y) ->
 		this.marker = $('<div class="image-tag-marker" id="image-tag-marker-' + x + '+' + y + '"></div>')
 		this.x = x
 		this.y = y
@@ -75,62 +60,100 @@ class Marker
 			top: y + 'px'
 		})
 
-		div.append(this.marker)
+	update: (endX) ->
+		if (this.x > endX)
+			this.marker.css({
+				left: '',
+				right: $(document).width() - this.x - 9 + 'px',
+			})
 
 class Line
-	constructor: (div, x, y, width) ->
+	constructor: (x, y, endX) ->
 		this.line = $('<div class="image-tag-line" id="image-tag-line-' + x + '+' + y + '"></div>')
 		this.x = x
-		this.y = y
-		this.line.css('left', x + 'px')
-		this.line.css('top', y + 'px')
-		this.line.css('width', width) if width?
-		div.append(this.line)
+		this.line.css('top', y + 2 + 'px')
+		this.update(endX) if endX?
+
+	update: (x) ->
+		css = {}
+		# I set css.left|right = '' to clear its setting.
+		if (Math.abs(x - this.x) < 4)
+			#do nothing. its inside the marker
+		else if(x <= this.x + 4)
+			css.left = ''
+			# -1 allows the line to overlap the marker
+			# -2 allows it to overlap the text
+			css.right = $(document).width() - this.x - 1
+			css.width = Math.abs(x - this.x - 2)
+		else
+			css.right = ''
+			css.left = this.x + 8
+			# +1 allows it to overlap the marker. 
+			css.width = Math.abs(this.x - x + 7)
+
+		this.line.css(css)
 
 class Tag
-	constructor: (div, x, y, marker, line, guid, textAlign = 'left', text = '', rider = '') ->
+	constructor: (div, x, y, marker, line, guid, text = '', rider = '') ->
 		that = this
-		if (focusedElement != null)
-			$(focusedElement).removeClass('image-tag-focused')
+		that.args = {
+			startX: marker.x,
+			startY: marker.y,
+			endX: x,
+			endY: y,
+			text: text,
+			rider: rider
+		}
 
 		that.guid = guid
-		console.log(guid)
 		that.tagId = 'image-tag-text-' + that.guid
 		that.marker = marker
 		that.line = line
 		that.textblock = $('<p class="image-tag-text-wrapper" id="image-tag-text-' + that.guid + '"></p>')
-		that.text = $('<p class="image-tag-text">' + text + '</p>')
-		that.rider = $('<p class="image-tag-rider">' + rider + '</p>')
-		that.textblock.css(textAlign, x + 'px')
-		that.textblock.css('top', y + 'px')
+		that.textbox = $('<p class="image-tag-text">' + text + '</p>')
+		that.riderbox = $('<p class="image-tag-rider">' + rider + '</p>')
 		
-		that.text.css('text-align', textAlign)
+		that.textblock.css('top', y + 'px')
+		if (marker.x > x)
+			that.textblock.css('right', $(document).width() - x + 'px')
+			that.textbox.css('text-align', 'right')
+		else
+			that.textblock.css('left', x + 'px')
+			that.textbox.css('text-align', 'left')
 
-		that.textblock.append(that.text)
-		that.textblock.append(that.rider)
+		that.textblock.append(that.textbox)
+		that.textblock.append(that.riderbox)
 		$(div).append(that.textblock)
 		
 		if (text == '')
-			that.text.prop('contentEditable', true)
-			that.text.on('keypress', (e) ->
+			that.textbox.prop('contentEditable', true)
+			that.textbox.on('keypress', (e) ->
 				if(e.keyCode == 13)
 					$(this).blur()
 			)
 
-			that.text.on('blur', (e) ->
+			that.textbox.on('blur', (e) ->
 				if($.trim($(this).text()) == '')
 					that.remove()
 				else
 					$(this).prop('contentEditable', false)
-					that.select()
+					that.done()
 			)
-			that.text.focus()
+			that.textbox.focus()
 		
-		that.text.on('click', (e) ->
+		that.textbox.on('click', (e) ->
 			that.select()
 		)
 
 		tags[that.guid] = that
+
+
+	done: ->
+		settings.callback(this)
+		this.args.text = $(this.textbox).text()
+		this.args.rider = $(this.riderbox).text()
+		this.select()
+		console.log(JSON.stringify(this.args))
 
 	select: ->
 		if (focusedElement != null && focusedElement != this)
@@ -147,7 +170,6 @@ class Tag
 		this.marker.marker.remove()
 
 		tags.splice(this.guid, 1)
-		console.log(tags)
 
 class GUID
 	s4: ->
