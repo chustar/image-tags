@@ -22,6 +22,7 @@ addTag = (startX, startY, endX, endY, text, rider) ->
 	body.append(globalDiv)
 
 	marker = new Marker(startX, startY)
+	marker.update(endX)
 	line = new Line(startX, startY, endX)
 	globalDiv.append(line.line).append(marker.marker)
 

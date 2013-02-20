@@ -31,6 +31,7 @@
     globalDiv = $('<div id="image-tag-' + guid + '"></div>');
     body.append(globalDiv);
     marker = new Marker(startX, startY);
+    marker.update(endX);
     line = new Line(startX, startY, endX);
     globalDiv.append(line.line).append(marker.marker);
     return tag = new Tag(globalDiv, endX, endY, marker, line, guid, text, rider);
