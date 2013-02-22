@@ -19,7 +19,7 @@
     _ref = settings.tags;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       tag = _ref[_i];
-      addTag(tag.startX, tag.startY, tag.endX, tag.endY, tag.text, tag.rider);
+      addTag(parseInt(tag.startX), parseInt(tag.startY), parseInt(tag.endX), parseInt(tag.endY), tag.text, tag.rider);
     }
     return this.on('mousedown', 'img', placeTag);
   };
@@ -90,7 +90,8 @@
     function Line(x, y, endX) {
       this.line = $('<div class="image-tag-line" id="image-tag-line-' + x + '+' + y + '"></div>');
       this.x = x;
-      this.line.css('top', y + 2 + 'px');
+      this.y = y;
+      this.line.css('top', (parseInt(y) + 2) + 'px');
       if (endX != null) {
         this.update(endX);
       }
@@ -134,7 +135,8 @@
         endX: x,
         endY: y,
         text: text,
-        rider: rider
+        rider: rider,
+        guid: guid
       };
       that.guid = guid;
       that.tagId = 'image-tag-text-' + that.guid;
@@ -178,11 +180,9 @@
     }
 
     Tag.prototype.done = function() {
-      settings.callback(this);
       this.args.text = $(this.textbox).text();
-      this.args.rider = $(this.riderbox).text();
-      this.select();
-      return console.log(JSON.stringify(this.args));
+      settings.callback(this);
+      return this.select();
     };
 
     Tag.prototype.select = function() {

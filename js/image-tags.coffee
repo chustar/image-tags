@@ -11,7 +11,7 @@ $.fn.image_tag = (options) ->
 		'callback': ->
 	}, options)
 	
-	addTag(tag.startX, tag.startY, tag.endX, tag.endY, tag.text, tag.rider) for tag in settings.tags
+	addTag(parseInt(tag.startX), parseInt(tag.startY), parseInt(tag.endX), parseInt(tag.endY), tag.text, tag.rider) for tag in settings.tags
 
 	this.on('mousedown', 'img', placeTag)
 
@@ -72,7 +72,8 @@ class Line
 	constructor: (x, y, endX) ->
 		this.line = $('<div class="image-tag-line" id="image-tag-line-' + x + '+' + y + '"></div>')
 		this.x = x
-		this.line.css('top', y + 2 + 'px')
+		this.y = y
+		this.line.css('top', (parseInt(y) + 2) + 'px')
 		this.update(endX) if endX?
 
 	update: (x) ->
@@ -104,6 +105,7 @@ class Tag
 			endY: y,
 			text: text,
 			rider: rider
+			guid: guid
 		}
 
 		that.guid = guid
@@ -150,11 +152,9 @@ class Tag
 
 
 	done: ->
-		settings.callback(this)
 		this.args.text = $(this.textbox).text()
-		this.args.rider = $(this.riderbox).text()
+		settings.callback(this)
 		this.select()
-		console.log(JSON.stringify(this.args))
 
 	select: ->
 		if (focusedElement != null && focusedElement != this)
