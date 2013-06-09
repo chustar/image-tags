@@ -8,10 +8,11 @@ settings = {}
 $.fn.image_tag = (options) ->
 	settings = $.extend({
 		'tags': {},
+		'getter': (tag) -> tag.rider,
 		'callback': ->
 	}, options)
 	
-	addTag(parseInt(tag.startX), parseInt(tag.startY), parseInt(tag.endX), parseInt(tag.endY), tag.text, tag.rider) for tag in settings.tags
+	addTag(parseInt(tag.startX), parseInt(tag.startY), parseInt(tag.endX), parseInt(tag.endY), tag.text, settings.getter(tag)) for tag in settings.tags
 
 	this.on('mousedown', 'img', placeTag)
 
